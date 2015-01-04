@@ -3,25 +3,15 @@
 (Cl:In-Package :package-name-shortener)
 
 
-(Defvar *package-memo*
-  (Make-Hash-Table :test #'Eq))
-
-
 (Defun shortest-package-name (Package)
   (Declare (Type Package Package))
-  (Multiple-Value-Bind (val win)
-                       (Gethash Package *package-memo*)
-    (If win
-        val
-        (Setf (Gethash Package *package-memo*)
-              (Let* ((names (Cons (Package-Name Package)
-                                  (Package-Nicknames package)))
-                     (minlen (Apply #'Min (Mapcar #'Length names))))
-                (Find minlen names
-                      :key (Lambda (s)
-                             (Declare (String s))
-                             (Length s))))))))
-
+  (Let ((shortest (Package-Name Package)))
+    (Declare (String shortest))
+    (Dolist (nick (Package-Nicknames package) shortest)
+      (Declare (String nick))
+      (When (< (Length nick)
+               (Length shortest))
+        (Setq shortest nick)))))
 
 
 #||||||||||||||||

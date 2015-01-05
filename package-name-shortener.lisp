@@ -6,11 +6,11 @@
 (Defun shortest-package-name (Package)
   (Declare (Type Package Package))
   (Let ((shortest (Package-Name Package)))
-    (Declare (String shortest))
+    (Declare ((Or String Null) shortest))
     (Dolist (nick (Package-Nicknames package) shortest)
-      (Declare (String nick))
-      (When (< (Length nick)
-               (Length shortest))
+      (Declare ((Or String Null) nick))
+      (When (< (If nick (Length nick) 0)
+               (If nick (Length shortest) 0))
         (Setq shortest nick)))))
 
 

@@ -10,6 +10,7 @@
                (:file "package-name-shortener")
                #+sbcl (:file "sbcl")
                #+ccl (:file "ccl")
+               #+lispworks (:file "lispworks")
                (:file "test")))
 
 

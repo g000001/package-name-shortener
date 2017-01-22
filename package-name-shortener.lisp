@@ -3,12 +3,16 @@
 (Cl:In-Package :package-name-shortener)
 
 
+(Deftype string-or-null ()
+  '(Or String null))
+
+
 (Defun shortest-package-name (Package)
   (Declare (Type Package Package))
   (Let ((shortest (Package-Name Package)))
-    (Declare ((Or String Null) shortest))
+    (Declare (type string-or-null shortest))
     (Dolist (nick (Package-Nicknames package) shortest)
-      (Declare ((Or String Null) nick))
+      (Declare (Type string-or-null nick))
       (When (< (If nick (Length nick) 0)
                (If nick (Length shortest) 0))
         (Setq shortest nick)))))
@@ -50,12 +54,15 @@
   #+lispworks (Declare (Ignore maybe-quote))
   #+sbcl (sb-kernel::output-symbol-name name stream maybe-quote)
   #+lispworks
-  (If (Every #'Upper-Case-P name)
-      (Write-String name Stream)
+  (If (Every #'Upper-Case-P (Remove-If-Not #'Alpha-Char-P name ))
+      (Write-String (case *print-case*
+                      (:downcase (string-downcase name))
+                      (otherwise name))
+                    Stream)
       (Progn
-        (Write-String "|")
+        (Write-String "|" Stream)
         (Write-String name Stream)
-        (Write-String "|"))))
+        (Write-String "|" Stream))))
 
 
 ;; (sb-kernel::output-symbol-name  "foo" t)
@@ -69,14 +76,10 @@
 
 ;; (List 'kl:aif 'kl:aif 'kl:aif 'kl:aif )
 
-'(lw:defadvice (system::output-symbol short :around) (object)
-  (output-symbol object))
-
-
-'(lw:delete-advice system::output-symbol short)
-
-
-(defun output-symbol (object &optional (Stream *Standard-Output*))
+(defun output-symbol
+       (object &optional (Stream 
+                          #-lispworks *Standard-Output*
+                          #+lispworks sys::*output-stream*))
   (if (or *print-escape* *print-readably*)
       (let ((package (symbol-package object))
             (name (symbol-name object))
@@ -117,7 +120,20 @@
       (output-symbol-name (symbol-name object) stream nil)))
 
 
+(lw:defadvice (system::output-symbol short :around) (object)
+  (output-symbol object))
+
+(hcl:delete-advice system::output-symbol short)
+
+
+(system::output-symbol )
 ;;; *eof*
+
+(with-output-to-string (sys::*output-stream*)
+  (system::output-symbol 'foo))
+
+(with-output-to-string (*standard-output*)
+  (system::output-symbol 'foo))
 
 
 (Print 'foo)

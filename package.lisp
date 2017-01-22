@@ -4,7 +4,8 @@
 
 
 (defpackage :package-name-shortener
-  (:use :cl :fiveam))
+  (:use :cl :fiveam)
+  (:export :shorten :unshorten))
 
 
 ;;; *EOF*
